@@ -1,5 +1,5 @@
 require('dotenv').config();
-import request from 'superagent';
+const request = require('superagent');
 
 // Application Dependencies
 const express = require('express');
@@ -56,17 +56,52 @@ const authRoutes = createAuthRoutes({
 app.use('/api/auth', authRoutes);
 
 // everything that starts with "/api" below here requires an auth token!
-app.use('/api', ensureAuth);
+app.use('/api/me', ensureAuth);
 
 app.get('/api', (req, res) => {
     res.send('are you working???');
 });
 
-
+//create a get route to the api
 app.get('/api/characters', async (req, res) => {
-    const data = await request.get(`https://rickandmortyapi.com/api/character/?search=${req.query.search}`);
+    const data = await request.get(`https://rickandmortyapi.com/api/character/?name=${req.query.search}`);
 
     res.json(data.body);
+});
+
+
+//get favorites
+app.get('/api/me/favorites', async (req, res) => {
+    try {
+        const myQuery = `
+        SELECT * FROM favorites
+        WHERE user_id=$1
+    `;
+        const favorites = await client.query(myQuery, [req.userId]);
+
+        res.json(favorites.rows);
+
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+//create a post route
+app.post('/api/me/favorites', async (req, res) => {
+    try {
+        const newFavorites = await client.query(`
+            INSERT INTO favorites (name, user_id)
+            VALUES ($1, $2)
+            RETURNING *
+        `,
+        [req.body.name, req.userId]
+        );
+
+        res.json(newFavorites.rows[0]);
+
+    } catch (err) {
+        console.log(err);
+    }
 });
 
 //start the server
