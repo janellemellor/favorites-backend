@@ -64,9 +64,13 @@ app.get('/api', (req, res) => {
 
 //create a get route to the api
 app.get('/api/characters', async (req, res) => {
-    const data = await request.get(`https://rickandmortyapi.com/api/character/?name=${req.query.search}`);
+    try {
+        const data = await request.get(`https://rickandmortyapi.com/api/character/?name=${req.query.search}`);
 
-    res.json(data.body);
+        res.json(data.body);
+    } catch (err) {
+        console.error(err);
+    }
 });
 
 
