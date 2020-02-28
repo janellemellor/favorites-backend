@@ -104,6 +104,24 @@ app.post('/api/me/favorites', async (req, res) => {
     }
 });
 
+//add delete route- check code for query to update
+app.delete('/api/me/favorites:id', async (req, res) => {
+    try {
+        const newFavorites = await client.query(`
+            INSERT INTO favorites (name, user_id)
+            VALUES ($1, $2)
+            RETURNING *
+        `,
+        [req.body.name, req.userId]
+        );
+
+        res.json(newFavorites.rows[0]);
+
+    } catch (err) {
+        console.log(err);
+    }
+});
+
 //start the server
 app.listen(PORT, () => {
     console.log('server running PORT', PORT);
